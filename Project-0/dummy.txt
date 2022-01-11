@@ -1,0 +1,5 @@
+this is a dummy file!
+
+Git does not track empty folders by default, so we add these dummy files in order for git to track these folders.
+
+Later once we have added real contents we won't need these files anymore.
