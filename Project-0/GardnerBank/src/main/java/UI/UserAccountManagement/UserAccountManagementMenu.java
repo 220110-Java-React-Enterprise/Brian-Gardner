@@ -53,8 +53,9 @@ public class UserAccountManagementMenu extends View {
                     break;
                 case 3: viewManager.registerView(new CustomerPasswordChangeMenu());
                     viewManager.navigate("UI.UserAccountManagement.CustomerPasswordChangeMenu");
+                    break;
                 default:
-                    System.out.println("Error: Invalid integer. Enter 0-4.");
+                    System.out.println("Error: Invalid integer. Enter 0-3.");
             }
         }
     }

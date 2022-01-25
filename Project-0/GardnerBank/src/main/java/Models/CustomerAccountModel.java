@@ -49,7 +49,7 @@ public class CustomerAccountModel {
     //with all member variables present
     @Override
     public String toString() {
-        String approval = this.approvalNeeded ? "\nTransactions with this account require this user's approval" : "";
+        String approval = this.approvalNeeded ? " - approval needed" : "";
         return "Customer #" + this.getCustomerID() + ", Account #" + this.getAccountID() + approval;
     }
 }

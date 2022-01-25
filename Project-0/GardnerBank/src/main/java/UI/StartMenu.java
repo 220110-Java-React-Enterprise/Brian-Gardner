@@ -8,6 +8,11 @@ public class StartMenu extends View {
     }
 
     public void renderView() {
+        //Set the DataStore's objects to null if logging out from the main menu
+        DataStore.setCustomerModel(null);
+        DataStore.setAccountModel(null);
+        DataStore.setTransactionModel(null);
+
         //Variables to store input as different types
         int intInput = -1;
         String strInput = "";

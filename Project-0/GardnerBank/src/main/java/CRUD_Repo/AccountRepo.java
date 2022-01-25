@@ -16,84 +16,148 @@ public class AccountRepo implements DataSourceCRUD<AccountModel> {
     //No-arg constructor which sets the java.sql.Connection object using the ConnectionManager class
     public AccountRepo() { connection = ConnectionManager.getConnection(); }
 
-    //Function to create a new row in accounts table from a AccountModel object
-    @Override
-    public AccountModel create(AccountModel model) {
-        try {
-            String sql = "INSERT INTO accounts (id, account_type, balance, head_id)" +
-                    "VALUES (?, ?, ?, ?)";
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            preparedStatement.setInt(1, model.getId());
-            preparedStatement.setString(2, model.getAccountTypeString());
-            preparedStatement.setDouble(3, model.getBalance());
-            preparedStatement.setInt(4, model.getHeadID());
+    //Function to read the id of the most recently added row in the accounts table
+    public int readLastId() {
+        //Set lastId to -1; only change if retrieving last id was successful
+        int lastId = -1;
 
-            preparedStatement.executeUpdate();
+        try {
+            //Prepare the SQL statement to be run
+            String sql = "SELECT LAST_INSERT_ID();";
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+
+            //Run the SQL statement and store results
+            ResultSet rs = preparedStatement.executeQuery();
+
+            //Check if the result set is empty
+            if (!rs.next()) {
+                System.out.println("Nothing in result set");
+            }
+            else {
+                //Set lastId to the result
+                lastId = rs.getInt("LAST_INSERT_ID()");
+            }
         } catch (SQLException e) {
+            //Print stack trace if exception caught
             e.printStackTrace();
         }
 
-        return model;
+        //Returns most recent auto-increment id if successfully found; -1 if not
+        return lastId;
+    }
+
+    //Function to create a new row in accounts table from a AccountModel object
+    @Override
+    public boolean create(AccountModel model) {
+        try {
+            //Prepare the SQL statement to be run
+            String sql = "INSERT INTO accounts (account_type, balance, head_id, description)" +
+                    "VALUES (?, ?, ?, ?)";
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, model.getAccountTypeString());
+            preparedStatement.setDouble(2, model.getBalance());
+            preparedStatement.setInt(3, model.getHeadID());
+            preparedStatement.setString(4, model.getDescription());
+
+            //Run the SQL statement
+            preparedStatement.executeUpdate();
+
+            //Set the model id to last id added through auto-increment
+            model.setId(readLastId());
+
+            //Indicate that model was successfully added to table and return true
+            System.out.println(model + "...successfully created in accounts table.");
+            return true;
+        } catch (SQLException e) {
+            //Display stack trace and return false if not successful
+            e.printStackTrace();
+            return false;
+        }
     }
 
     //Function to create a AccountModel object with data read from a row in accounts table
     //using AccountModel.id as index to find row in table
     @Override
-    public AccountModel read(Integer id) {
+    public boolean read(Integer id, AccountModel model) {
         try {
+            //Prepare the SQL statement to be run
             String sql = "SELECT * FROM accounts WHERE id = ?";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
 
+            //Run the SQL statement and store results
             ResultSet rs = preparedStatement.executeQuery();
 
-            AccountModel model = new AccountModel();
-            while(rs.next()) {
-                model.setId(rs.getInt("id"));
-                model.setAccountTypeString(rs.getString("account_type"));
-                model.setBalance(rs.getDouble("balance"));
-                model.setHeadID(rs.getInt("head_id"));
+            //Check if the result set is empty and return false if so
+            if(!rs.next()) {
+                System.out.println("Account with id#: " + id + " not found in accounts table.");
+                return false;
             }
 
-            return model;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+            //Input data into model object whose reference is passed into function
+            model.setId(rs.getInt("id"));
+            model.setAccountTypeString(rs.getString("account_type"));
+            model.setBalance(rs.getDouble("balance"));
+            model.setHeadID(rs.getInt("head_id"));
+            model.setDescription(rs.getString("description"));
 
-        return null;
+            //Return true if all parts of operation were successful
+            System.out.println(model + " found in accounts table.");
+            return true;
+        } catch (SQLException e) {
+            //Print stack trace and return false if an operation threw an exception
+            e.printStackTrace();
+            return false;
+        }
     }
 
     //Function to update information in a row in the accounts table using a AccountModel object
     //using AccountModel.id as index to find row in table
     @Override
-    public AccountModel update(AccountModel model) {
+    public boolean update(AccountModel model) {
         try {
-            String sql = "UPDATE accounts SET account_type = ?, balance = ?, head_id = ? WHERE id = ?";
+            //Prepare the SQL statement to be run
+            String sql = "UPDATE accounts SET account_type = ?, balance = ?, head_id = ?, description = ? WHERE id = ?";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, model.getAccountTypeString());
             preparedStatement.setDouble(2, model.getBalance());
             preparedStatement.setInt(3, model.getHeadID());
-            preparedStatement.setInt(4, model.getId());
+            preparedStatement.setString(4, model.getDescription());
+            preparedStatement.setInt(5, model.getId());
 
+            //Run the SQL statement
             preparedStatement.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
 
-        return model;
+            //Return true if all parts of operation were successful
+            System.out.println(model + "\nUpdated in accounts table.");
+            return true;
+        } catch (SQLException e) {
+            //Print stack trace and return false if an operation threw an exception
+            e.printStackTrace();
+            return false;
+        }
     }
 
     //Function to remove a row from the accounts table
     //using AccountModel.id as index to find row in table
     @Override
-    public void delete(Integer id) {
+    public boolean delete(Integer id) {
         try {
-            String sql = "DELETE FROM customers WHERE id = ?";
+            //Prepare the SQL statement to be run
+            String sql = "DELETE FROM accounts WHERE id = ?";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
+
+            //Run the SQL statement
             preparedStatement.executeUpdate();
+
+            //Return true if delete operation was successful
+            System.out.println("Account id#" + id + " successfully deleted.");
+            return true;
         } catch (SQLException e) {
+            //Print stack trace and return false if operation threw an exception
             e.printStackTrace();
+            return false;
         }
     }
 }

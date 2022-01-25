@@ -29,6 +29,12 @@ public class InputValidation {
         return (isAlpha(chr) || isNumeric(chr));
     }
 
+    //Function to check whether a character is an empty space
+    public static boolean isEmptySpace(char chr) { return (chr == 32); }
+
+    //Function to check whether a character is alphabetic or an empty space
+    public static boolean isAlphaSpace(char chr) { return (isAlpha(chr) || isEmptySpace(chr)); }
+
     //Function to check whether all characters in a string are uppercase alphabetic letters
     public static boolean isAlphaUpper(String str) {
         for (int index = 0; index < str.length(); index++) {
@@ -74,10 +80,25 @@ public class InputValidation {
         return true;
     }
 
+    //Function to check whether all characters in a string are alphabetic or empty spaces
+    public static boolean isAlphaSpace(String str) {
+        for (int index = 0; index < str.length(); index++) {
+            if (!isAlphaSpace(str.charAt(index)))
+                return false;
+        }
+        return true;
+    }
+
     //Method to test whether a string is within the required length parameters
     //to be used by other String validation functions
     public static boolean isValidString(String fieldName, String str, int minSize, int maxSize) {
+        //Set str to empty if null
+        str = str == null ? "" : str;
+
+        //Set return value to true if String length is within given parameters
         boolean answer = !(str.length() < minSize || str.length() > maxSize);
+
+        //Add error message to DataStore
         if (!answer) DataStore.addToPotentialErrorMessage(invalidStringErrorMessage(fieldName, minSize, maxSize));
 
         return answer;
@@ -116,6 +137,17 @@ public class InputValidation {
         return answer;
     }
 
+    //Method to test whether a string is a valid potential description
+    //Checks whether the string is within given required length parameters and
+    //elements are alphabetic or empty spaces
+    public static boolean isValidDescription(String fieldName, String description, int minSize, int maxSize) {
+        boolean answer = isAlphaSpace(description);
+        if (!answer) DataStore.addToPotentialErrorMessage(invalidDescriptionErrorMessage(fieldName));
+        answer = isValidString(fieldName, description, minSize, maxSize) && answer;
+
+        return answer;
+    }
+
     //Method that creates and returns an error message as string based on given field name, min and max string size
     public static String invalidStringErrorMessage(String fieldName, int minSize, int maxSize) {
         return "Error: " + fieldName + " must be " + minSize + " to " + maxSize + " characters in length.\n";
@@ -134,5 +166,10 @@ public class InputValidation {
     //Method that creates and returns an error message as string based on given field name
     public static String invalidPasswordErrorMessage(String fieldName) {
         return "Error: " + fieldName + " must contain only alphabetical and numeric characters.\n";
+    }
+
+    //Method that creates and returns an error message as string based on given field name
+    public static String invalidDescriptionErrorMessage(String fieldName) {
+        return "Error: " + fieldName + " must contain only alphabetical and empty space characters.\n";
     }
 }

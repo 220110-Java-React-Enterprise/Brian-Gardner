@@ -1,21 +1,9 @@
-import CRUD_Repo.CustomerAccountRepo;
-import InputValidation.InputValidation;
-import Models.CustomerAccountModel;
+import InputValidation.CurrencyFormatter;
 import UI.StartMenu;
 import UI.ViewManager;
 
 public class Main {
     public static void main(String ...args) {
-        //Testing out joint repos
-        CustomerAccountRepo customerAccountRepo = new CustomerAccountRepo();
-        CustomerAccountModel model = new CustomerAccountModel();
-        model.setAccountID(1000);
-        model.setCustomerID(1);
-        model.setApprovalNeeded(true);
-
-
-        System.out.println(customerAccountRepo.create(model));
-
         //Initialize ViewManager
         ViewManager viewManager = ViewManager.getViewManager();
 
@@ -27,6 +15,14 @@ public class Main {
         }
 
 /*
+double doubles[] = new double[20];
+        doubles[0] = -.005;
+        for (int i = 1; i < 20; i++) {
+            doubles[i] = doubles[i - 1] * 7;
+        }
+        for (int i = 0; i < 20; i++) {
+            System.out.println(CurrencyFormatter.format(doubles[i]));
+        }
         Connection connection = CRUD_Repo.ConnectionManager.getConnection();
 
         Models.CustomerModel bran = new Models.CustomerModel(1, "Bran", "Axl", "Gerd", "bgard", "securepword");

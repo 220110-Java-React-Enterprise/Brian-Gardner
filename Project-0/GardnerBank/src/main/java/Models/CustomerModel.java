@@ -27,6 +27,7 @@ public class CustomerModel {
 
     //No arg constructor
     public CustomerModel() {
+
     }
 
     //Constructor with all parameters
@@ -143,7 +144,7 @@ public class CustomerModel {
 
     //Method to return full name of user, leaving out middle name if blank
     public String getFullName() {
-        String middleName = (this.getMiddleName().isEmpty()) ? "" : this.getMiddleName() + " ";
+        String middleName = (this.getMiddleName() == null || this.getMiddleName().isEmpty()) ? "" : this.getMiddleName() + " ";
         return this.getGivenName() + " " + middleName + this.getSurname();
     }
 

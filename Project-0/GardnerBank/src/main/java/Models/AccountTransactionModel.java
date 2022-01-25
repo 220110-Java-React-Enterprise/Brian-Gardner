@@ -1,5 +1,7 @@
 package Models;
 
+import InputValidation.CurrencyFormatter;
+
 //Class used for storing information in/retrieving information from the joint accounts_transactions table
 public class AccountTransactionModel {
     //Space for potential static members/functions
@@ -34,6 +36,8 @@ public class AccountTransactionModel {
         return amount;
     }
 
+    public String getAmountString() { return CurrencyFormatter.format(getAmount()); }
+
     public void setAccountId(Integer accountId) {
         this.accountId = accountId;
     }
@@ -50,6 +54,6 @@ public class AccountTransactionModel {
     //with all member variables present
     @Override
     public String toString() {
-        return "Account #" + this.getAccountId() + ": Transaction #" + this.getTransactionId() + ": " + this.getAmount();
+        return "Account #" + this.getAccountId() + ": Transaction #" + this.getTransactionId() + ": " + this.getAmountString();
     }
 }

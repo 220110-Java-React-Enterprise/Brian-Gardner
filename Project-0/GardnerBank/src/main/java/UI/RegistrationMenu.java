@@ -2,7 +2,6 @@ package UI;
 
 import CRUD_Repo.CustomerRepo;
 import CustomLists.CustomArrayList;
-import InputValidation.InputValidation;
 import Models.CustomerModel;
 
 //Menu prompting users to create a new customer account stored in customers table
@@ -18,25 +17,15 @@ public class RegistrationMenu extends View {
         //CustomerRepo object used to check if username is unique
         CustomerRepo customerRepo = new CustomerRepo();
 
-        CustomerModel testModel = customerRepo.read(1);
-        System.out.println(testModel);
-
-        //Test reading data from repository
-        CustomArrayList<CustomerModel> customers = new CustomArrayList<>();
-        System.out.println(customerRepo.readAll(customers));
-
-        for (int i = 0; i < customers.size(); i++) {
-            System.out.println(customers.get(i));
-        }
 
         //Variable to store number of steps left in registration process
         int steps = 6;
 
         //Variables to store input as different types
         String strInput = "";
-        CustomerModel tmpModel = new CustomerModel();
+        CustomerModel customerModel = new CustomerModel();
 
-        while (steps > 1) {
+        while (steps > 0) {
             //Prompt user to enter information to store in customers table
             //Inner loop to collect given/first name from user
             while (steps == 6) {
@@ -45,12 +34,12 @@ public class RegistrationMenu extends View {
 
                 //Check if user entered 0 to exit
                 if (strInput.equals("0")) {
-                    steps = 0;
+                    steps = -1;
                     break;
                 }
 
                 //Reduce steps by 1 if validation & setter method successful, otherwise loop again
-                steps -= tmpModel.setGivenName(strInput) ? 1 : 0;
+                steps -= customerModel.setGivenName(strInput) ? 1 : 0;
             }
 
             //Inner loop to collect middle name from user
@@ -60,12 +49,12 @@ public class RegistrationMenu extends View {
 
                 //Check if user entered 0 to exit
                 if (strInput.equals("0")) {
-                    steps = 0;
+                    steps = -1;
                     break;
                 }
 
                 //Reduce steps by 1 if validation & setter method successful, otherwise loop again
-                steps -= tmpModel.setMiddleName(strInput) ? 1 : 0;
+                steps -= customerModel.setMiddleName(strInput) ? 1 : 0;
             }
 
             //Inner loop to collect surname/last name from user
@@ -75,12 +64,12 @@ public class RegistrationMenu extends View {
 
                 //Check if user entered 0 to exit
                 if (strInput.equals("0")) {
-                    steps = 0;
+                    steps = -1;
                     break;
                 }
 
                 //Reduce steps by 1 if validation & setter method successful, otherwise loop again
-                steps -= tmpModel.setSurname(strInput) ? 1 : 0;
+                steps -= customerModel.setSurname(strInput) ? 1 : 0;
             }
 
             //Inner loop to prompt user for a username
@@ -90,7 +79,7 @@ public class RegistrationMenu extends View {
 
                 //Check if user entered 0 to exit
                 if (strInput.equals("0")) {
-                    steps = 0;
+                    steps = -1;
                     break;
                 }
 
@@ -101,7 +90,7 @@ public class RegistrationMenu extends View {
                 }
 
                 //Reduce steps by 1 if validation & setter method successful, otherwise loop again
-                steps -= tmpModel.setUsername(strInput) ? 1 : 0;
+                steps -= customerModel.setUsername(strInput) ? 1 : 0;
             }
 
             //Inner loop to prompt user for a password
@@ -111,22 +100,27 @@ public class RegistrationMenu extends View {
 
                 //Check if user entered 0 to exit
                 if (strInput.equals("0")) {
-                    steps = 0;
+                    steps = -1;
                     break;
                 }
 
                 //Reduce steps by 1 if validation & setter method successful, otherwise loop again
-                steps -= tmpModel.setPassword(strInput) ? 1 : 0;
+                steps -= customerModel.setPassword(strInput) ? 1 : 0;
             }
 
             //Attempt to store user information into customers table
             if (steps == 1) {
-                System.out.println(customerRepo.create(tmpModel) + "\n...added to customers table.");
+                if (customerRepo.create(customerModel)) {
+                    System.out.println(customerModel + "\n...added to customers table.");
+                    steps--;
+                }
+                else {
+                    System.out.println("Failed to add customer info to customers table.");
+                }
             }
         }
-        if (steps == 1) {
-            DataStore.setModel(tmpModel);
-            DataStore.setName(tmpModel);
+        if (steps == 0) {
+            DataStore.setCustomerModel(customerModel);
 
             viewManager.registerView(new MainMenu());
             viewManager.navigate("UI.MainMenu");

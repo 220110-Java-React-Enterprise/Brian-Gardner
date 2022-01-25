@@ -20,7 +20,7 @@ public class MainMenu extends View {
         String strInput = "";
 
         //User greetings
-        System.out.println("Welcome, " + DataStore.getModel().getFullName());
+        System.out.println("Welcome, " + DataStore.getCustomerModel().getFullName());
 
         //Main loop that exits when 0 <= intInput <= 3
         while (intInput < 0 || intInput > 3) {

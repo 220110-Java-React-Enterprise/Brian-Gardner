@@ -82,7 +82,7 @@ public class LoginMenu extends View {
         }
 
         if (steps == 1) {
-            DataStore.setModel(tmpModel);
+            DataStore.setCustomerModel(tmpModel);
 
             viewManager.registerView(new MainMenu());
             viewManager.navigate("UI.MainMenu");

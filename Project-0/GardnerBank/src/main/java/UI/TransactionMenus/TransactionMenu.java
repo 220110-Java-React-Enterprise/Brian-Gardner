@@ -46,7 +46,7 @@ public class TransactionMenu extends View {
                 case 0: viewManager.navigate("UI.MainMenu");
                     break;
                 case 1: viewManager.registerView(new DepositMenu());
-                    viewManager.navigate("UI.TransactionMenus.DepositsMenu");
+                    viewManager.navigate("UI.TransactionMenus.DepositMenu");
                     break;
                 case 2: viewManager.registerView(new WithdrawalMenu());
                     viewManager.navigate("UI.TransactionMenus.WithdrawalMenu");
