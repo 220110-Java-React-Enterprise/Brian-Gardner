@@ -1,6 +1,7 @@
 package UI;
 
 import CRUD_Repo.CustomerRepo;
+import CRUD_Repo.CustomerRepoCRUD;
 import Models.CustomerModel;
 
 //Menu prompting users to login to existing customer account stored in customers table
@@ -12,7 +13,7 @@ public class LoginMenu extends View {
     }
 
     public void renderView() {
-        //CustomerRepo used to check if username and password combination is valid
+        //CustomerRepoCRUD used to check if username and password combination is valid
         CustomerRepo customerRepo = new CustomerRepo();
 
         //Variable to store number of steps left in login process

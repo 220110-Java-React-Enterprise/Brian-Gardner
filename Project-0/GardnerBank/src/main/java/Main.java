@@ -1,9 +1,16 @@
-import InputValidation.CurrencyFormatter;
+import CRUD_Repo.AccountRepo;
+import CRUD_Repo.AccountTransactionRepo;
+import CRUD_Repo.CustomerRepo;
+import CRUD_Repo.TransactionRepoCRUD;
+import CustomLists.CustomArrayList;
+import Models.AccountTransactionModel;
+import Models.TransactionModel;
 import UI.StartMenu;
 import UI.ViewManager;
 
 public class Main {
     public static void main(String ...args) {
+
         //Initialize ViewManager
         ViewManager viewManager = ViewManager.getViewManager();
 
@@ -21,13 +28,13 @@ double doubles[] = new double[20];
             doubles[i] = doubles[i - 1] * 7;
         }
         for (int i = 0; i < 20; i++) {
-            System.out.println(CurrencyFormatter.format(doubles[i]));
+            System.out.println(OutputFormatter.format(doubles[i]));
         }
         Connection connection = CRUD_Repo.ConnectionManager.getConnection();
 
         Models.CustomerModel bran = new Models.CustomerModel(1, "Bran", "Axl", "Gerd", "bgard", "securepword");
 
-        CRUD_Repo.CustomerRepo customerRepo = new CRUD_Repo.CustomerRepo();
+        CRUD_Repo.CustomerRepoCRUD customerRepo = new CRUD_Repo.CustomerRepoCRUD();
 
         System.out.println("Creating...");
         customerRepo.create(bran);

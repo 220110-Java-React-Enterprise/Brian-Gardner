@@ -1,5 +1,6 @@
 package UI.BankAccountManagement;
 
+import UI.DataStore;
 import UI.View;
 import UI.ViewManager;
 
@@ -14,16 +15,24 @@ public class BankAccountManagementMenu extends View {
     //Function to render menu view
     @Override
     public void renderView() {
+        //Direct user to change bank account menu if datastore does not have an account set
+        if (DataStore.getAccountModel() == null) {
+            DataStore.setLastViewName("UI.MainMenu");
+            ViewManager.getViewManager().registerView(new BankAccountChangeCurrent());
+            viewManager.navigate("UI.TransactionMenus.BankAccountChangeCurrent");
+            return;
+        }
+
         //Variables to store input as different types
         int intInput = -1;
         String strInput = "";
 
-        //Main loop that exits when 0 <= intInput <= 4
-        while (intInput < 0 || intInput > 4) {
+        //Main loop that exits when 0 <= intInput <= 5
+        while (intInput < 0 || intInput > 5) {
             //Prompt user to select bank account management option
             System.out.println("Please enter the number corresponding to the bank account management task you want to perform" +
                     "(or 0 to exit)\n(1)Create bank account\n(2)Change bank account info\n(3)Change bank account ownership\n" +
-                    "(4)View bank account transaction history");
+                    "(4)View bank account transaction history\n(5)Close account");
             strInput = viewManager.getScanner().nextLine();
 
             //Test if user input empty string; return to loop start if so
@@ -58,8 +67,11 @@ public class BankAccountManagementMenu extends View {
                 case 4: viewManager.registerView(new BankAccountTransactionHistoryMenu());
                     viewManager.navigate("UI.TransactionMenus.BankAccountTransactionHistoryMenu");
                     break;
+                case 5: viewManager.registerView(new BankAccountCloseMenu());
+                    viewManager.navigate("UI.BankAccountManagement.BankAccountCloseMenu");
+                    break;
                 default:
-                    System.out.println("Error: Invalid integer. Enter 0-4.");
+                    System.out.println("Error: Invalid integer. Enter 0-5.");
             }
         }
     }

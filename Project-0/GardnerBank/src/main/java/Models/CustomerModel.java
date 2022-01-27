@@ -1,6 +1,6 @@
 package Models;
 
-import InputValidation.InputValidation;
+import InputOutputFunctions.InputValidation;
 import UI.DataStore;
 
 //Class used for storing information in/retrieving information from customers table

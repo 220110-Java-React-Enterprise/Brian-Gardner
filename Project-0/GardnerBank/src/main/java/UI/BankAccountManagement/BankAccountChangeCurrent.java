@@ -1,7 +1,9 @@
 package UI.BankAccountManagement;
 
 import CRUD_Repo.AccountRepo;
+import CRUD_Repo.AccountRepoCRUD;
 import CRUD_Repo.CustomerAccountRepo;
+import CRUD_Repo.CustomerAccountRepoCRUD;
 import CustomLists.CustomArrayList;
 import Models.AccountModel;
 import Models.CustomerAccountModel;
@@ -13,29 +15,11 @@ public class BankAccountChangeCurrent extends View {
     //Static final variable to store max number of steps
     private static final int MAX_STEPS = 2;
 
-    //Member variable to store the calling menu's name
-    private String callingViewName;
 
     //No args constructor sets view name and manager
     public BankAccountChangeCurrent() {
         viewName = "UI.TransactionMenus.BankAccountChangeCurrent";
         viewManager = ViewManager.getViewManager();
-        callingViewName = "UI.BankAccountManagement.BankAccountManagementMenu";
-    }
-
-    //Constructor with callingViewName argument to store which view to return to
-    public BankAccountChangeCurrent(String callingViewName) {
-        super();
-        this.callingViewName = callingViewName;
-    }
-
-    //Getter/setter methods for callingMenuName member string
-    public String getCallingViewName() {
-        return callingViewName;
-    }
-
-    public void setCallingViewName(String callingViewName) {
-        this.callingViewName = callingViewName;
     }
 
     //Function to render menu view
@@ -60,16 +44,24 @@ public class BankAccountChangeCurrent extends View {
             while (steps == MAX_STEPS) {
                 CustomArrayList<CustomerAccountModel> customerAccountModels = new CustomArrayList<>();
 
-                if (!customerAccountRepo.readByCustomerId(DataStore.getCustomerModel().getId(), customerAccountModels)) {
+                if (!customerAccountRepo.read(DataStore.getCustomerModel().getId(), "customer_id", customerAccountModels)) {
                     System.out.println("Read from customers_accounts table failed. Returning to last menu.");
                     steps = -1;
+                }
+
+                //Direct customer to create new account if none found linked
+                if (customerAccountModels == null || customerAccountModels.size() == 0) {
+                    System.out.println("Redirecting to account registration menu.");
+                    viewManager.registerView(new BankAccountCreationMenu());
+                    viewManager.navigate("UI.BankAccountManagement.BankAccountCreationMenu");
+                    return;
                 }
 
                 for (int i = 0; i < customerAccountModels.size(); i++) {
                     System.out.println(customerAccountModels.get(i));
                 }
 
-                System.out.println("(Enter 0 to exit)\nWhich bank account would you like to switch to using? Enter id#: ");
+                System.out.println("(Enter 0 to exit)\nWhich bank account would you like to use? Enter id#: ");
                 strInput = viewManager.getScanner().nextLine();
 
                 //Attempt to turn string input into integer to store in intInput
@@ -81,11 +73,13 @@ public class BankAccountChangeCurrent extends View {
                     continue;
                 }
 
+                //Exit if user enters 0
                 if (intInput == 0) {
                     steps = -1;
                     break;
                 }
 
+                //Look through list of customer-account links for id
                 for (int i = 0; i < customerAccountModels.size(); i++) {
                     if (customerAccountModels.get(i).getAccountID() == intInput) {
                         foundAccountId = true;
@@ -107,13 +101,13 @@ public class BankAccountChangeCurrent extends View {
                 }
                 else {
                     DataStore.setAccountModel(accountModel);
+                    DataStore.getAccountModel().setSubAccountsRecursive(accountRepo);
                     System.out.println("Account successfully switched.");
                     steps--;
                 }
             }
         }
 
-        System.out.println("BankAccountChangeCurrent menu placeholder");
         viewManager.navigate(DataStore.getLastViewName());
     }
 }

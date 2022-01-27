@@ -1,21 +1,23 @@
 package Models;
 
-import InputValidation.InputValidation;
-import InputValidation.CurrencyFormatter;
+import CRUD_Repo.AccountRepo;
+import CustomLists.CustomListInterface;
+import InputOutputFunctions.InputValidation;
+import InputOutputFunctions.OutputFormatter;
 import UI.DataStore;
 
 //Class used for storing information in/retrieving information from accounts table
 public class AccountModel {
     //Static class variables to store allowed description length
-    private static final int descriptionMinLength = 0;
-    private static final int descriptionMaxLength = 256;
+    protected static final int descriptionMinLength = 0;
+    protected static final int descriptionMaxLength = 256;
 
-    //Private member variables to be accessed/changed through getter/setter functions
-    private Integer id;
-    private AccountType type;
-    private Double balance;
-    private Integer headID;
-    private String description;
+    //protected member variables to be accessed/changed through getter/setter functions
+    protected Integer id;
+    protected AccountType type;
+    protected Double balance;
+    protected Integer headID;
+    protected String description;
 
     //No arg constructor
     public AccountModel() {
@@ -34,7 +36,7 @@ public class AccountModel {
         this.description = description;
     }
 
-    //Getter/setter methods to access and change private member variables
+    //Getter/setter methods to access and change protected member variables
     public Integer getId() {
         return id;
     }
@@ -69,7 +71,7 @@ public class AccountModel {
         return balance;
     }
 
-    public String getBalanceString() { return CurrencyFormatter.format(this.getBalance()); }
+    public String getBalanceString() { return OutputFormatter.formatCurrency(this.getBalance()); }
 
     public void setBalance(Double balance) {
         this.balance = balance;
@@ -122,6 +124,18 @@ public class AccountModel {
             case "CHECKING":
             default: this.setAccountType(AccountType.CHECKING);
         }
+    }
+
+    //Function used by HeadAccounts to recursively set subAccounts and subAccounts of any HeadAccountModels within
+    //Does nothing if mistakenly called by superclass AccountModel
+    public void setSubAccountsRecursive(AccountRepo accountRepo) {
+        System.out.println("Function setSubAccounts mistakenly called on AccountModel superclass.");
+    }
+
+    //Function used by HeadAccounts to recursively add string version of sub accounts to a list of strings
+    //Does nothing if accidentally called by superclass
+    public boolean getSubAccountsStringsRecursive(CustomListInterface<String> subAccountsStrings, int tabIndex) {
+        return false;
     }
 
     //Override of Object.toString() method to automatically convert AccountModel object to String

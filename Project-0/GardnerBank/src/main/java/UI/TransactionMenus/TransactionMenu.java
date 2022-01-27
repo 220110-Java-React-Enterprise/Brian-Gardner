@@ -1,5 +1,7 @@
 package UI.TransactionMenus;
 
+import UI.BankAccountManagement.BankAccountChangeCurrent;
+import UI.DataStore;
 import UI.View;
 import UI.ViewManager;
 
@@ -14,6 +16,14 @@ public class TransactionMenu extends View {
     //Function to render menu view
     @Override
     public void renderView() {
+        //Direct user to change bank account menu if datastore does not have an account set
+        if (DataStore.getAccountModel() == null) {
+            DataStore.setLastViewName("UI.MainMenu");
+            ViewManager.getViewManager().registerView(new BankAccountChangeCurrent());
+            viewManager.navigate("UI.TransactionMenus.BankAccountChangeCurrent");
+            return;
+        }
+
         //Variables to store input as different types
         int intInput = -1;
         String strInput = "";

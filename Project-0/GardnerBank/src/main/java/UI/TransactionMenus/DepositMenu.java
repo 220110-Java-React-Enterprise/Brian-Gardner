@@ -1,8 +1,8 @@
 package UI.TransactionMenus;
 
-import CRUD_Repo.AccountRepo;
+import CRUD_Repo.AccountRepoCRUD;
 import CRUD_Repo.AccountTransactionRepo;
-import CRUD_Repo.TransactionRepo;
+import CRUD_Repo.TransactionRepoCRUD;
 import Models.AccountModel;
 import Models.AccountTransactionModel;
 import Models.TransactionModel;
@@ -25,10 +25,8 @@ public class DepositMenu extends View {
     //Function to render menu view
     @Override
     public void renderView() {
-        //AccountRepo, AccountTransactionRepo, and TransactionRepo objects used to create new deposit
-        AccountRepo accountRepo = new AccountRepo();
+        //AccountTransactionRepo object used to create new deposit
         AccountTransactionRepo accountTransactionRepo = new AccountTransactionRepo();
-        TransactionRepo transactionRepo = new TransactionRepo();
 
         //Variable to store number of steps left in deposit process
         int steps = MAX_STEPS;
@@ -45,6 +43,11 @@ public class DepositMenu extends View {
 
         //Set account transaction type to deposit
         transactionModel.setTransactionType("DEPOSIT");
+
+        //Skip to bank account change menu if no current bank account set in datastore
+        if (DataStore.getAccountModel() == null) {
+            steps = -2;
+        }
 
         while (steps > 0) {
             while (steps == MAX_STEPS) {
@@ -80,9 +83,7 @@ public class DepositMenu extends View {
                         break;
                     case 1: steps--;
                         break;
-                    case 2: viewManager.registerView(new BankAccountChangeCurrent());
-                        viewManager.navigate("UI.TransactionMenus.BankAccountChangeCurrent");
-                        steps = -2;
+                    case 2: steps = -2;
                         break;
                     default:
                         System.out.println("Error: Invalid integer. Enter 0-2.");
@@ -90,7 +91,7 @@ public class DepositMenu extends View {
             }
 
             while (steps == MAX_STEPS - 1) {
-                System.out.println("How much would you like to deposit? (enter x to exit)\n");
+                System.out.println("How much would you like to deposit? (enter x to exit)");
                 strInput = viewManager.getScanner().nextLine();
 
                 //Check if user entered x to exit
@@ -98,13 +99,7 @@ public class DepositMenu extends View {
                     steps = -1;
                     break;
                 }
-/*
-                //Test if user input empty string; return to loop start if so
-                if (strInput.equals("")) {
-                    System.out.println("Error: input received an empty string.");
-                    continue;
-                }
-*/
+
                 //Attempt to turn string input into double to store in dblInput
                 //return to loop start if it fails
                 try {
@@ -143,7 +138,7 @@ public class DepositMenu extends View {
 
             //Attempt to store transaction and accountTransaction information into respective tables
             if (steps == 1) {
-                if (accountTransactionRepo.createDeposit(accountModel, transactionModel, accountTransactionModel)) {
+                if (accountTransactionRepo.createFullAccountTransaction(accountModel, transactionModel, accountTransactionModel)) {
                     System.out.println(transactionModel + "\n...added to transactions table.");
                     System.out.println(accountTransactionModel + "\n...added to accounts_transactions table.");
                     System.out.println(accountModel + "\n...updated in accounts table.");

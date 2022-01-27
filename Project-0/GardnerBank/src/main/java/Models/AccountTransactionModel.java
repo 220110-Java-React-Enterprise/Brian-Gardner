@@ -1,6 +1,6 @@
 package Models;
 
-import InputValidation.CurrencyFormatter;
+import InputOutputFunctions.OutputFormatter;
 
 //Class used for storing information in/retrieving information from the joint accounts_transactions table
 public class AccountTransactionModel {
@@ -36,7 +36,7 @@ public class AccountTransactionModel {
         return amount;
     }
 
-    public String getAmountString() { return CurrencyFormatter.format(getAmount()); }
+    public String getAmountString() { return OutputFormatter.formatCurrency(getAmount()); }
 
     public void setAccountId(Integer accountId) {
         this.accountId = accountId;

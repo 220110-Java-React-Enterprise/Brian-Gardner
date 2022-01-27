@@ -1,5 +1,8 @@
 package CRUD_Repo;
 
+import CustomLists.CustomArrayList;
+import CustomLists.CustomListInterface;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -9,12 +12,35 @@ import java.sql.SQLException;
 //Including turning auto_commit on and off
 public class BaseRepo {
     //java.sql.Connection object allowing data to be stored into a SQL database
-    private final Connection connection;
+    protected final Connection connection;
 
     //No-arg constructor which sets the java.sql.Connection object using the ConnectionManager class
     public BaseRepo() { connection = ConnectionManager.getConnection(); }
 
-    //Function to read the id of the most recently added row in the transactions table
+    //Function used by subclasses to read all data from a table and turn into a custom list of strings
+    //Does nothing for BaseRepo
+    public boolean readAllStrings(CustomListInterface<String> strings) {
+        return false;
+    }
+
+    //Function to print all objects in a given custom list to console
+    public boolean printAll() {
+        //Create empty custom list of strings to pass into readAll
+        CustomArrayList<String> results = new CustomArrayList<>();
+
+        //Run readAll and return false if function failed
+        if (!readAllStrings(results)) {
+            return false;
+        }
+
+        //Loop through custom list and print results to console
+        for (int i = 0; i < results.size(); i++) {
+            System.out.println(results.get(i));
+        }
+
+        //Return true if successful
+        return true;
+    }
 
     //Function that checks the database for the most recently generated auto-increment value
     //Run immediately after creating a new table row that has an auto-increment primary key

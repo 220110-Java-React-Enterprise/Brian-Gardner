@@ -1,118 +1,39 @@
 package CRUD_Repo;
 
-import Models.*;
+import CustomLists.CustomArrayList;
+import CustomLists.CustomListInterface;
+import InputOutputFunctions.OutputFormatter;
+import Models.AccountModel;
 import Models.AccountTransactionModel;
-import UI.DataStore;
+import Models.TransactionModel;
+import Models.TransactionType;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-//Class that contains methods allowing for AccountTransactionModel objects to be stored in/retrieved from
-//SQL database using a Connection object
-public class AccountTransactionRepo extends BaseRepo implements JointDataSourceCRUD<AccountTransactionModel> {
-    //java.sql.Connection object allowing data to be stored into a SQL database
-    private final Connection connection;
-
-    //No-arg constructor which sets the java.sql.Connection object using the ConnectionManager class
-    public AccountTransactionRepo() { connection = ConnectionManager.getConnection(); }
-
-
-    //Function to create a new row in accounts_transactions table from a AccountTransactionModel object
-    @Override
-    public boolean create(AccountTransactionModel model) {
-        try {
-            String sql = "INSERT INTO accounts_transactions (account_id, transaction_id, approval_needed) VALUES (?,?,?)";
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            preparedStatement.setInt(1, model.getAccountId());
-            preparedStatement.setInt(2, model.getTransactionId());
-            preparedStatement.setDouble(3, model.getAmount());
-
-            preparedStatement.executeUpdate();
-            return true;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    //Function to create a AccountTransactionModel object with data read from a row in accounts_transactions table
-    //using AccountTransactionModel.id as index to find row in table
-    @Override
-    public boolean read(Integer accountId, Integer transactionId, AccountTransactionModel model) {
-        try {
-            String sql = "SELECT * FROM accounts_transactions WHERE account_id = ? AND transaction_id = ?";
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            preparedStatement.setInt(1, accountId);
-            preparedStatement.setInt(2, transactionId);
-
-            ResultSet rs = preparedStatement.executeQuery();
-
-            while(rs.next()) {
-                model.setAccountId(rs.getInt("account_id"));
-                model.setTransactionId(rs.getInt("transaction_id"));
-                model.setAmount(rs.getDouble("approval_needed"));
-            }
-
-            return true;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    //Function to update information in a row in the accounts_transactions table using a AccountTransactionModel object
-    //using accountId and transactionId as index to find row in table
-    @Override
-    public boolean update(AccountTransactionModel model) {
-        try {
-            String sql = "UPDATE accounts_transactions SET approval_needed = ? WHERE account_id = ? AND transaction_id = ?";
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            preparedStatement.setDouble(1, model.getAmount());
-            preparedStatement.setInt(2, model.getAccountId());
-            preparedStatement.setInt(3, model.getTransactionId());
-
-            preparedStatement.executeUpdate();
-
-            return true;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    //Function to remove a row from the accounts_transactions table
-    //using account_id and transaction_id as index to find row in table
-    @Override
-    public boolean delete(Integer accountId, Integer transactionId) {
-        try {
-            String sql = "DELETE FROM accounts_transactions WHERE account_id = ? AND transaction_id = ?";
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            preparedStatement.setInt(1, accountId);
-            preparedStatement.setInt(2, transactionId);
-            preparedStatement.executeUpdate();
-
-            return true;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    //Function to make a deposit
-    public boolean createDeposit(AccountModel accountModel, TransactionModel transactionModel, AccountTransactionModel accountTransactionModel) {
+//Class that extends AccountTransactionRepoCRUD
+//holds additional methods not implementing DataSourceCRUD interface
+public class AccountTransactionRepo extends AccountTransactionRepoCRUD {
+    //Function to complete a full transaction: either deposit or withdrawal
+    public boolean createFullAccountTransaction(AccountModel accountModel, TransactionModel transactionModel,
+                                                AccountTransactionModel accountTransactionModel) {
         //Return value that stores whether all operations were successful
-        boolean operationSuccess = false;
+        //Set initial value to true if transaction type is NOT transfer
+        boolean operationSuccess;
+
+        //Set the transaction type to a boolean - true for deposit, false for withdrawal
+        boolean isDeposit = (transactionModel.getTransactionType() == TransactionType.DEPOSIT);
 
         //Integers to track number of steps left in operation
-        int maxSteps = 3;
+        int maxSteps = 5;
         int steps = maxSteps;
 
         //Integer to hold lastId; set operationSuccess to false if failed to gather
         int lastId = 0;
 
         //Strings to create/update SQL rows
+        String sqlReadAccountBalance = "SELECT balance FROM accounts WHERE id = ?";
         String sqlTransactionCreate = "INSERT INTO transactions (transaction_type, description)" +
                 "VALUES (?, ?)";
         String sqlAccountTransactionCreate = "INSERT INTO accounts_transactions " +
@@ -120,15 +41,63 @@ public class AccountTransactionRepo extends BaseRepo implements JointDataSourceC
         String sqlUpdateAccountBalance = "UPDATE accounts SET balance = ? WHERE id = ?";
 
         //Declare the statements in function scope; set values in individual steps
+        PreparedStatement readAccountBalance;
         PreparedStatement createTransaction;
         PreparedStatement createAccountTransaction;
         PreparedStatement updateAccountBalance;
 
+        //Step one - check that the transaction type is NOT transfer
+        //Set return value to true if transaction type is not transfer
+        operationSuccess = (transactionModel.getTransactionType() != TransactionType.TRANSFER);
+
+        //Reduce steps by one if transaction type is not transfer; set below 0 otherwise
+        steps -= operationSuccess ? 1 : maxSteps;
+
         //Create a temporary variable to store updated balance after deposit
         double tempBalance = accountModel.getBalance() + accountTransactionModel.getAmount();
 
-        //Attempt to create transaction row
-        if (steps == maxSteps) {
+        //Step two - check that the account passed in exists in the database
+        //and that the transaction will not set the balance below 0
+        if (steps == maxSteps - 1) {
+            try {
+                //Attempt to prepare readAccountBalance statement
+                readAccountBalance = connection.prepareStatement(sqlReadAccountBalance);
+
+                //Set arguments for readAccountBalance
+                readAccountBalance.setInt(1, accountModel.getId());
+
+                //Attempt to run statement and store results in rs
+                ResultSet rs = readAccountBalance.executeQuery();
+
+                if (rs.next()) {
+                    accountModel.setBalance(rs.getDouble("balance"));
+
+                    //Set temporary balance to current account balance plus transaction amount
+                    tempBalance = accountModel.getBalance() + accountTransactionModel.getAmount();
+
+                    //Check if transaction would set account below $0
+                    if (tempBalance < 0.0) {
+                        System.out.println("Error: transaction would set account balance below $0.00");
+                        operationSuccess = false;
+                    }
+                }
+                else {
+                    System.out.println("Account not found.");
+                    operationSuccess = false;
+                }
+            } catch (SQLException e) {
+                //Print stack trace and return false if an operation threw an exception
+                e.printStackTrace();
+                operationSuccess = false;
+            }
+
+            //Reduce steps by one if try block completed, account was found and balance was determined to not go below 0
+            steps -= operationSuccess ? 1 : maxSteps;
+        }
+
+
+        //Step three - attempt to create transaction row
+        if (steps == maxSteps - 2) {
             try {
                 //Attempt to prepare createTransaction statement
                 createTransaction = connection.prepareStatement(sqlTransactionCreate);
@@ -145,13 +114,15 @@ public class AccountTransactionRepo extends BaseRepo implements JointDataSourceC
 
                 //Set success to whether readLastId successfully read most recent id (true) or returned -1 (false)
                 operationSuccess = lastId > 0;
+
+                //Set transaction id to last id if readLastId successful
+                if (operationSuccess) {
+                    transactionModel.setId(lastId);
+                }
             } catch (SQLException e) {
                 //Print stack trace and return false if an operation threw an exception
                 e.printStackTrace();
-            }
-
-            if (operationSuccess) {
-                transactionModel.setId(lastId);
+                operationSuccess = false;
             }
 
             //Reduce steps by one if try block completed & lastId was found; set to -1 if exception was thrown
@@ -159,13 +130,14 @@ public class AccountTransactionRepo extends BaseRepo implements JointDataSourceC
             steps -= operationSuccess ? 1 : maxSteps;
         }
 
-        //Attempt to set auto-commit to false, so changes to account_transaction and account are committed at the same time
-        if (steps == maxSteps - 1) {
+        //Step four - attempt to set auto-commit to false
+        //so changes to account_transaction and account are committed at the same time
+        if (steps == maxSteps - 3) {
             operationSuccess = this.setAutoCommitFalse();
             steps -= operationSuccess ? 1 : maxSteps;
         }
 
-        //Attempt to create account_transaction and update account rows
+        //Final step - attempt to create account_transaction and update accounts rows
         if (steps == 1) {
             //Set accountTransactionModel values
             accountTransactionModel.setAccountId(accountModel.getId());
@@ -192,10 +164,9 @@ public class AccountTransactionRepo extends BaseRepo implements JointDataSourceC
                 //Attempt to commit statements
                 connection.commit();
 
-
+                //Update account balance to tempBalance after transaction completes
                 accountModel.setBalance(tempBalance);
             } catch (SQLException e) {
-
                 //Print stack trace and return false if an operation threw an exception
                 e.printStackTrace();
 
@@ -212,15 +183,112 @@ public class AccountTransactionRepo extends BaseRepo implements JointDataSourceC
                 //Set operationSuccess to false
                 operationSuccess = false;
             }
-
-            //Reduce steps by one if try block completed & lastId was found; set to -1 if exception was thrown
-            //or lastId was not found
-            //steps -= operationSuccess ? 1 : maxSteps;
         }
 
         //Attempt to set auto-commit back to true regardless of whether operation was successful
         this.setAutoCommitTrue();
 
         return operationSuccess;
+    }
+
+    //Function to read account-transactions by a given id (transaction or account id), joined with information from the
+    //transaction table (transaction type/description), and store into respective custom lists
+    public boolean readTransactionDetails(int id, String fieldName, CustomListInterface<AccountTransactionModel> accountTransactionModels,
+                                          CustomListInterface<TransactionModel> transactionModels) {
+        //Exit method if fieldName is neither account_id nor transaction_id
+        if (fieldName == null || (!fieldName.equals("account_id") && !fieldName.equals("transaction_id"))) {
+            System.out.println("Field name must be set to either account_id or transaction_id");
+            return false;
+        }
+
+        //Create temporary accountTransactionModel & transactionModel objects to store data read from tables
+        AccountTransactionModel accountTransactionModel;
+        TransactionModel transactionModel;
+
+        try {
+            //Prepare the SQL statement to be run, inserting fieldName as either account_id or transaction_id
+            String sql = "SELECT accounts_transactions.*, transactions.transaction_type, transactions.description " +
+                    "FROM accounts_transactions, transactions WHERE accounts_transactions.transaction_id = " +
+                    "transactions.id AND " + fieldName + " = ?";
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setInt(1, id);
+
+            //Run the SQL statement and store results
+            ResultSet rs = preparedStatement.executeQuery();
+
+            //Iterate through the results in rs and add each row as an object to the CustomList
+            while(rs.next()) {
+                //Reset temp models to empty objects
+                accountTransactionModel = new AccountTransactionModel();
+                transactionModel= new TransactionModel();
+
+                //Read in a row from rs and store each element in appropriate field in temp models
+                accountTransactionModel.setAccountId(rs.getInt("account_id"));
+                accountTransactionModel.setTransactionId(rs.getInt("transaction_id"));
+                accountTransactionModel.setAmount(rs.getDouble("amount"));
+
+                transactionModel.setId(rs.getInt("transaction_id"));
+                transactionModel.setTransactionType(rs.getString("transaction_type"));
+                transactionModel.setDescription(rs.getString("description"));
+
+                //Add models to custom lists
+                accountTransactionModels.add(accountTransactionModel);
+                transactionModels.add(transactionModel);
+            }
+
+            //Return true if read operations were successful and no exceptions thrown
+            return true;
+        } catch (SQLException e) {
+            //Print stack trace and return false if an operation threw an exception
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    //Function to perform readTransactionDetails and store the results in a custom list of formatted strings
+    public boolean readTransactionDetails(int id, String fieldName, CustomListInterface<String> results) {
+        //Boolean to be returned at end of function to indicate whether successful
+        boolean operationSuccess;
+
+        //Create empty custom lists of models to store data read from tables
+        CustomArrayList<AccountTransactionModel> accountTransactionModels = new CustomArrayList<>();
+        CustomArrayList<TransactionModel> transactionModels = new CustomArrayList<>();
+
+        operationSuccess = this.readTransactionDetails(id, fieldName, accountTransactionModels, transactionModels);
+
+        if (!operationSuccess) {
+            System.out.println("readTransactionDetails failed");
+            return false;
+        }
+
+        if (accountTransactionModels.size() != transactionModels.size()) {
+            System.out.println("Error: custom array lists for each model do not match in size.");
+            return false;
+        }
+
+        for (int i = 0; i < accountTransactionModels.size() && i < transactionModels.size(); i++) {
+            results.add(OutputFormatter.formatTransactionDetails(accountTransactionModels.get(i), transactionModels.get(i)));
+        }
+
+        return true;
+    }
+
+    //Function to print readTransactionDetails results to console
+    public boolean printTransactionDetails(int id, String fieldName) {
+        //Create empty custom list of strings to pass into readTransactionDetails
+        CustomArrayList<String> details = new CustomArrayList<>();
+
+        //Run readTransactionDetails and return false if function failed
+        if (!readTransactionDetails(id, fieldName, details)) {
+            return false;
+        }
+
+        //Loop through custom list and print details to console
+        for (int i = 0; i < details.size(); i++) {
+            System.out.println(details.get(i));
+        }
+
+        //Return true if successful
+        return true;
     }
 }

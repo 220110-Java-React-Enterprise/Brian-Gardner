@@ -1,7 +1,7 @@
 package UI;
 
 import CRUD_Repo.CustomerRepo;
-import CustomLists.CustomArrayList;
+import CRUD_Repo.CustomerRepoCRUD;
 import Models.CustomerModel;
 
 //Menu prompting users to create a new customer account stored in customers table
@@ -14,7 +14,7 @@ public class RegistrationMenu extends View {
 
     //Function to render the menu to user
     public void renderView() {
-        //CustomerRepo object used to check if username is unique
+        //CustomerRepoCRUD object used to check if username is unique
         CustomerRepo customerRepo = new CustomerRepo();
 
 
@@ -166,7 +166,7 @@ public class RegistrationMenu extends View {
     }
 
     //Function to check if a string is a unique username
-    public boolean isUniqueUsername(String username, CustomerRepo customerRepo) {
+    public boolean isUniqueUsername(String username, CustomerRepoCRUD customerRepo) {
         CustomArrayList<String> usernames = new CustomArrayList<>();
 
         boolean readSuccessful = customerRepo.readUsernames(usernames);
