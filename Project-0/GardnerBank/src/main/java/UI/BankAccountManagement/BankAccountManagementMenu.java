@@ -30,9 +30,9 @@ public class BankAccountManagementMenu extends View {
         //Main loop that exits when 0 <= intInput <= 5
         while (intInput < 0 || intInput > 5) {
             //Prompt user to select bank account management option
-            System.out.println("Please enter the number corresponding to the bank account management task you want to perform" +
-                    "(or 0 to exit)\n(1)Create bank account\n(2)Change bank account info\n(3)Change bank account ownership\n" +
-                    "(4)View bank account transaction history\n(5)Close account");
+            System.out.println("\nPlease enter the number corresponding to the bank account management task you want to perform" +
+                    "(or 0 to exit)\n(1)Create bank account\n(2)Change bank account ownership\n" +
+                    "(3)View bank account transaction history");
             strInput = viewManager.getScanner().nextLine();
 
             //Test if user input empty string; return to loop start if so
@@ -58,20 +58,14 @@ public class BankAccountManagementMenu extends View {
                 case 1: viewManager.registerView(new BankAccountCreationMenu());
                     viewManager.navigate("UI.BankAccountManagement.BankAccountCreationMenu");
                     break;
-                case 2: viewManager.registerView(new BankAccountInfoChangeMenu());
-                    viewManager.navigate("UI.BankAccountManagement.BankAccountInfoChangeMenu");
-                    break;
-                case 3: viewManager.registerView(new BankAccountOwnershipChangeMenu());
+                case 2: viewManager.registerView(new BankAccountOwnershipChangeMenu());
                     viewManager.navigate("UI.BankAccountManagement.BankAccountOwnershipChangeMenu");
                     break;
-                case 4: viewManager.registerView(new BankAccountTransactionHistoryMenu());
+                case 3: viewManager.registerView(new BankAccountTransactionHistoryMenu());
                     viewManager.navigate("UI.TransactionMenus.BankAccountTransactionHistoryMenu");
                     break;
-                case 5: viewManager.registerView(new BankAccountCloseMenu());
-                    viewManager.navigate("UI.BankAccountManagement.BankAccountCloseMenu");
-                    break;
                 default:
-                    System.out.println("Error: Invalid integer. Enter 0-5.");
+                    System.out.println("Error: Invalid integer. Enter 0-3.");
             }
         }
     }

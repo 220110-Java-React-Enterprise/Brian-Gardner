@@ -32,7 +32,7 @@ public class TransactionMenu extends View {
         while (intInput < 0 || intInput > 3) {
             //Prompt user to select transaction option
             System.out.println("Please enter the number corresponding to the transaction you want to perform (or 0 to exit)" +
-                    "\n(1)Deposit\n(2)Withdrawal\n(3)Transfer");
+                    "\n(1)Deposit\n(2)Withdrawal");
             strInput = viewManager.getScanner().nextLine();
 
             //Test if user input empty string; return to loop start if so
@@ -60,9 +60,6 @@ public class TransactionMenu extends View {
                     break;
                 case 2: viewManager.registerView(new WithdrawalMenu());
                     viewManager.navigate("UI.TransactionMenus.WithdrawalMenu");
-                    break;
-                case 3: viewManager.registerView(new TransferMenu());
-                    viewManager.navigate("UI.TransactionMenus.TransferMenu");
                     break;
                 default:
                     System.out.println("Error: Invalid integer. Enter 0-4.");

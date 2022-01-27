@@ -20,13 +20,13 @@ public class MainMenu extends View {
         String strInput = "";
 
         //User greetings
-        System.out.println("Welcome, " + DataStore.getCustomerModel().getFullName());
+        System.out.println("\nWelcome, " + DataStore.getCustomerModel().getFullName());
 
         //Main loop that exits when 0 <= intInput <= 3
-        while (intInput < 0 || intInput > 3) {
+        while (intInput < 0 || intInput > 2) {
             //Prompt user to select submenu
-            System.out.println("Please enter the number corresponding to the submenu you want to navigate (or 0 to exit):" +
-                    "\n(1)User Account Management\n(2)Bank Account Management\n(3)Complete/approve transaction");
+            System.out.println("\nPlease enter the number corresponding to the submenu you want to navigate (or 0 to exit):" +
+                    "\n(1)Bank Account Management\n(2)Complete/approve transaction");
             strInput = viewManager.getScanner().nextLine();
 
             //Test if user input empty string; return to loop start if so
@@ -49,17 +49,14 @@ public class MainMenu extends View {
             switch (intInput) {
                 case 0: viewManager.navigate("UI.StartMenu");
                     break;
-                case 1: viewManager.registerView(new UserAccountManagementMenu());
-                    viewManager.navigate("UI.UserAccountManagement.UserAccountManagementMenu");
-                    break;
-                case 2: viewManager.registerView(new BankAccountManagementMenu());
+                case 1: viewManager.registerView(new BankAccountManagementMenu());
                     viewManager.navigate("UI.BankAccountManagement.BankAccountManagementMenu");
                     break;
-                case 3: viewManager.registerView(new TransactionMenu());
+                case 2: viewManager.registerView(new TransactionMenu());
                     viewManager.navigate("UI.TransactionMenus.TransactionMenu");
                     break;
                 default:
-                    System.out.println("Error: Invalid integer. Enter 0-3.");
+                    System.out.println("Error: Invalid integer. Enter 0-2.");
             }
         }
     }

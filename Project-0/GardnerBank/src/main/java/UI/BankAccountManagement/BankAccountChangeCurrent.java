@@ -101,13 +101,13 @@ public class BankAccountChangeCurrent extends View {
                 }
                 else {
                     DataStore.setAccountModel(accountModel);
-                    DataStore.getAccountModel().setSubAccountsRecursive(accountRepo);
                     System.out.println("Account successfully switched.");
                     steps--;
                 }
             }
         }
 
+        //Return to previous view
         viewManager.navigate(DataStore.getLastViewName());
     }
 }

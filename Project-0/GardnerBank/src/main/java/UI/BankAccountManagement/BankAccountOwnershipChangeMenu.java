@@ -37,6 +37,7 @@ public class BankAccountOwnershipChangeMenu extends View {
         int intInput = -1;
         String strInput = "";
         boolean foundAccountId = false;
+        boolean foundCustomerId = false;
         AccountModel accountModel = new AccountModel();
         CustomerAccountModel customerAccountModel = new CustomerAccountModel();
 
@@ -136,13 +137,16 @@ public class BankAccountOwnershipChangeMenu extends View {
                 //Look through list of customers for id
                 for (int i = 0; i < customerModels.size(); i++) {
                     if (customerModels.get(i).getId() == intInput) {
+                        foundCustomerId = true;
                         customerAccountModel.setCustomerID(intInput);
                         steps--;
                         break;
                     }
                 }
 
-                System.out.println("Customer id not found in table.");
+                if (!foundCustomerId) {
+                    System.out.println("Customer id not found in table.");
+                }
             }
 
             //Final step - create customer-account link

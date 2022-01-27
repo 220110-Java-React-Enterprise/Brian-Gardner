@@ -10,6 +10,7 @@ import UI.DataStore;
 import UI.View;
 import UI.ViewManager;
 
+//Menu to close a bank account
 public class BankAccountCloseMenu extends View {
     //Static final variable to store max number of steps
     private static final int MAX_STEPS = 3;

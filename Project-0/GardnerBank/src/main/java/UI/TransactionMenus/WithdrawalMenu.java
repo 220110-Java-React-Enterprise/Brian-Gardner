@@ -147,7 +147,7 @@ public class WithdrawalMenu extends View {
                 if (accountTransactionRepo.createFullAccountTransaction(accountModel, transactionModel, accountTransactionModel)) {
                     System.out.println(transactionModel + "\n...added to transactions table.");
                     System.out.println(accountTransactionModel + "\n...added to accounts_transactions table.");
-                    System.out.println(accountModel + "\n...updated in accounts table.");
+                    System.out.println(accountModel + "\n...updated in accounts table.\n");
 
                     steps = 0;
                 }

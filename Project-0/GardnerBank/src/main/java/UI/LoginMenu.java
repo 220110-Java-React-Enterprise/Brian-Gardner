@@ -29,7 +29,7 @@ public class LoginMenu extends View {
             //Prompt user to enter login info
             //Inner loop to prompt collect username
             while (steps == 3) {
-                System.out.println("(Enter 0 any time to exit)\nUsername: ");
+                System.out.println("\n(Enter 0 any time to exit)\nUsername: ");
                 strInput = viewManager.getScanner().nextLine();
 
                 //Check if user entered 0 to exit
@@ -82,11 +82,16 @@ public class LoginMenu extends View {
             }
         }
 
+        //Add customer info to data store and navigate to main menu if login successful
         if (steps == 1) {
             DataStore.setCustomerModel(tmpModel);
 
             viewManager.registerView(new MainMenu());
             viewManager.navigate("UI.MainMenu");
+        }
+        //Return to start menu if user did not log in
+        else {
+            viewManager.navigate("UI.StartMenu");
         }
     }
 }

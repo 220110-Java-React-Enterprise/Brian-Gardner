@@ -29,6 +29,9 @@ public class InputValidation {
         return (isAlpha(chr) || isNumeric(chr));
     }
 
+    //Function to check whether a character is alphabetic, numeric or a period
+    public static boolean isAlphaNumericPeriod(char chr) { return (isAlphaNumeric(chr) || chr == 46); }
+
     //Function to check whether a character is an empty space
     public static boolean isEmptySpace(char chr) { return (chr == 32); }
 
@@ -75,6 +78,15 @@ public class InputValidation {
     public static boolean isAlphaNumeric(String str) {
         for (int index = 0; index < str.length(); index++) {
             if (!isAlphaNumeric(str.charAt(index)))
+                return false;
+        }
+        return true;
+    }
+
+    //Function to check whether all characters in a string are alphabetic, numeric or period characters
+    public static boolean isAlphaNumericPeriod(String str) {
+        for (int index = 0; index < str.length(); index++) {
+            if (!isAlphaNumericPeriod(str.charAt(index)))
                 return false;
         }
         return true;
@@ -146,6 +158,48 @@ public class InputValidation {
         answer = isValidString(fieldName, description, minSize, maxSize) && answer;
 
         return answer;
+    }
+
+    //Method to test whether a string is valid potential email address
+    public static boolean isValidEmail(String email) {
+        //Integer to hold index of @ symbol, if found
+        int atSignIndex = email.indexOf('@');
+
+        //Returns false if @ symbol is first char, last char, or not found
+        if (atSignIndex < 1 || atSignIndex == email.length() - 1) {
+            return false;
+        }
+
+        //Strings to hold email address chunks before and after @ symbol
+        String strBeforeAtSymbol = email.substring(0, atSignIndex - 1);
+        String strAfterAtSymbol = email.substring(atSignIndex + 1);
+
+        //Returns false if email chunk before @ symbol are not alphabetic, numeric or period
+        if (!isAlphaNumericPeriod(strBeforeAtSymbol)) {
+            return false;
+        }
+
+        //Integer to hold index of . symbol after @ symbol, to indicate email domain
+        int periodIndex = strAfterAtSymbol.indexOf('.');
+
+        //Returns false if period symbol is not found as fourth from last character or is first
+        //character of post-@ string
+        if (periodIndex < 1 || periodIndex != strAfterAtSymbol.length() - 4) {
+            return false;
+        }
+
+        //Strings to hold post-@ email address before and after . symbol
+        String strBeforePeriod = strAfterAtSymbol.substring(0, periodIndex - 1);
+        String strAfterPeriod = strAfterAtSymbol.substring(periodIndex + 1);
+
+        //Returns false if either part of string before or after period is composed of non-lowercase
+        //alphabetic characters
+        if (!isAlphaLower(strBeforePeriod) || !isAlphaLower(strAfterPeriod)) {
+            return false;
+        }
+
+        //Return true if all conditions have been met
+        return true;
     }
 
     //Method that creates and returns an error message as string based on given field name, min and max string size

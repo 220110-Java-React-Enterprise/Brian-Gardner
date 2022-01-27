@@ -93,10 +93,12 @@ public class BankAccountCreationMenu extends View {
                 if (accountRepo.create(accountModel)) {
                     System.out.println(accountModel + "\n...added to accounts table.");
 
+                    //Define customer-account information
                     customerAccountModel.setCustomerID(DataStore.getCustomerModel().getId());
                     customerAccountModel.setAccountID(accountModel.getId());
                     customerAccountModel.setApprovalNeeded(true);
 
+                    //Attempt to store customer-account information in table
                     if (customerAccountRepo.create(customerAccountModel)) {
                         System.out.println(customerAccountModel + "\n...added to customers_accounts table.");
                         steps--;
@@ -110,10 +112,13 @@ public class BankAccountCreationMenu extends View {
                 }
             }
         }
+
+        //Set data store account to newly created one if successful
         if (steps == 0) {
             DataStore.setAccountModel(accountModel);
-
-            viewManager.navigate("UI.BankAccountManagement.BankAccountManagementMenu");
         }
+
+        //Return to main menu
+        viewManager.navigate("UI.BankAccountManagement.BankAccountManagementMenu");
     }
 }
